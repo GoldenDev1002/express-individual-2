@@ -114,3 +114,79 @@ app.put('/:collectionName/:id', function (req, res, next) {
         res.send(results);
     });
 });
+
+/// delete endpoint
+app.delete('/:collectionName/:id'
+    , function (req, res, next) {
+        req.collection.deleteOne(
+            { _id: new ObjectId(req.params.id) }, function (err, result) {
+                if (err) {
+                    return next(err);
+                } else {
+                    res.send((result.deletedCount === 1) ? { msg: "success" } : { msg: "error" });
+                }
+            }
+        );
+    });
+//searching through the databse
+app.get(
+    "/:collectionName/search/:query",
+    function (req, res, next) {
+      //const searchText = req.query.search;
+      let searchPrompt = req.params.query;
+  
+      let query = {};
+      query = {
+        $or: [
+          { subject: { $regex: searchPrompt, $options: "i" } },
+          { location: { $regex: searchPrompt, $options: "i" } },
+        ],
+      };
+      req.collection.find(query, {}).toArray(function (err, results) {
+        if (err) {
+          return next(err);
+        }
+        res.send(results);
+      });
+    }
+  );
+  app.get("/:collectionName/search", function (req, res, next) {
+    req.collection.find({}).toArray(function (err, results) {
+      if (err) {
+        return next(err);
+      }
+      res.send(results);
+    });
+  });
+  
+
+
+app.get("/", function (req, res) {
+    res.send("Running");
+});
+
+/// handles invalid request
+app.use(function (req, res) {
+    res.status(404).send("Resource not found...");
+});
+
+/// middlware allows to intercept a param and intialize related collection
+app.param('collectionName'
+    , function (req, res, next, collectionName) {
+
+        req.collection = db.collection(collectionName);
+        return next();
+    });
+
+//search query 
+
+  
+  
+  
+  
+  
+
+/// listening on port 3000
+app.listen(4500, function () {
+    console.log("App started on port 4500");
+});
