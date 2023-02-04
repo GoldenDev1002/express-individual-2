@@ -187,6 +187,3 @@ app.param('collectionName'
   
 
 /// listening on port 3000
-app.listen(4500, function () {
-    console.log("App started on port 4500");
-});
