@@ -181,7 +181,9 @@ app.param('collectionName'
 //search query 
 
   
-  
+app.listen(4500, function () {
+    console.log("App started on port 4500");
+});
   
   
   
