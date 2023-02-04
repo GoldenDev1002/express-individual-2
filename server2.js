@@ -171,7 +171,12 @@ app.use(function (req, res) {
 });
 
 /// middlware allows to intercept a param and intialize related collection
+app.param('collectionName'
+    , function (req, res, next, collectionName) {
 
+        req.collection = db.collection(collectionName);
+        return next();
+    });
 
 //search query 
 
