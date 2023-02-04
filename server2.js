@@ -50,7 +50,7 @@ app.use(function (req, res, next) {
 /// serving static files
 /// static file middleware that returns lesson images, or an error
 /// message if the image file does not exist 
-var publicImagePath = path.resolve(__dirname, 'subjectPic');
+var publicImagePath = path.resolve(__dirname, 'image');
 app.use('/image', express.static(publicImagePath, {
     fallthrough: false,
 }));
@@ -114,6 +114,7 @@ app.put('/:collectionName/:id', function (req, res, next) {
         res.send(results);
     });
 });
+
 
 /// delete endpoint
 app.delete('/:collectionName/:id'
@@ -181,11 +182,12 @@ app.param('collectionName'
 //search query 
 
   
-app.listen(4500, function () {
-    console.log("App started on port 4500");
-});
+  
   
   
   
 
 /// listening on port 3000
+app.listen(4500, function () {
+    console.log("App started on port 4500");
+});
