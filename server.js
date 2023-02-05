@@ -1,12 +1,11 @@
 const express = require("express");
 // cors required for cross origin resource sharing
 const cors = require("cors");
-const path = require('path');
+const path = require("path");
 const propertiesReader = require("properties-reader");
-const bodyParser = require('body-parser');
-const MongoClient2 = require('mongodb').MongoClient;
-const ObjectId2 = require('mongodb').ObjectId;
-
+const bodyParser = require("body-parser");
+const MongoClient2 = require("mongodb").MongoClient;
+const ObjectId2 = require("mongodb").ObjectId;
 
 //1st step of setting up mongo db connection
 
@@ -31,48 +30,50 @@ let db = client.db(dbName);
 
 /// using express
 let app = express();
-app.set('json spaces', 3);
-app.set(express.json())
-app.set(express.urlencoded({ extended: true }))
+app.set("json spaces", 3);
+app.set(express.json());
+app.set(express.urlencoded({ extended: true }));
 
 /// setup cors middleware
 app.use(cors());
 
 app.use(bodyParser.json()); // parse application/json
 
-/// logger’ middleware that output all requests to the server console 
+/// logger’ middleware that output all requests to the server console
 app.use(function (req, res, next) {
-    // log incoming requests to console
-    console.log("Incoming request: " + req.url);
-    next();
+  // log incoming requests to console
+  console.log("Incoming request: " + req.url);
+  next();
 });
 
 /// serving static files
 /// static file middleware that returns lesson images, or an error
-/// message if the image file does not exist 
-var publicImagePath = path.resolve(__dirname, 'image');
-app.use('/image', express.static(publicImagePath, {
+/// message if the image file does not exist
+var publicImagePath = path.resolve(__dirname, "subjectPic");
+app.use(
+  "/image",
+  express.static(publicImagePath, {
     fallthrough: false,
-}));
-
+  })
+);
 
 /// custom error message if image does not exist
 app.use(function (err, req, res, next) {
-    if (err.code === 'ENOENT') {
-        return res.status(404).send('Custom error message: Image not found');
-    }
-    next(err);
+  if (err.code === "ENOENT") {
+    return res.status(404).send("Custom error message: Image not found");
+  }
+  next(err);
 });
 
 /// https://localhost:3000/:collectionName
 /// get route returns all lessons
-app.get('/:collectionName', function (req, res, next) {
-    req.collection.find({}).toArray(function (error, results) {
-        if (error) {
-            return next(error);
-        }
-        res.send(results);
-    });
+app.get("/:collectionName", function (req, res, next) {
+  req.collection.find({}).toArray(function (error, results) {
+    if (error) {
+      return next(error);
+    }
+    res.send(results);
+  });
 });
 
 /// https://localhost:3000/:collectionName/_id
@@ -87,105 +88,96 @@ app.get('/:collectionName', function (req, res, next) {
 // });
 
 /// post route saves order to order collection
-app.post('/:collectionName'
-    , function (req, res, next) {
-        try {
-            abc = req.body
-            req.collection.insertOne(abc, function (err, results) {
-                if (err) {
-                    return next(err);
-                }
-                res.send(results);
-            });
-        } catch (e) {
-            next(e);
-        }
-    });
-
-/// A PUT route that updates the number of available spaces in the
-/// 'lesson' collection after an order is submitted
-app.put('/:collectionName/:id', function (req, res, next) {
-    var id = req.params.id;
-    var spaces = req.body.spaces
-    req.collection.updateOne({ _id: new ObjectId(id) }, { $inc: {spaces: -spaces} }, function (err, results) {
-        if (err) {
-            return next(err);
-        }
-        res.send(results);
-    });
-});
-
-
-/// delete endpoint
-app.delete('/:collectionName/:id'
-    , function (req, res, next) {
-        req.collection.deleteOne(
-            { _id: new ObjectId(req.params.id) }, function (err, result) {
-                if (err) {
-                    return next(err);
-                } else {
-                    res.send((result.deletedCount === 1) ? { msg: "success" } : { msg: "error" });
-                }
-            }
-        );
-    });
-//searching through the databse
-app.get(
-    "/:collectionName/search/:query",
-    function (req, res, next) {
-      //const searchText = req.query.search;
-      let searchPrompt = req.params.query;
-  
-      let query = {};
-      query = {
-        $or: [
-          { subject: { $regex: searchPrompt, $options: "i" } },
-          { location: { $regex: searchPrompt, $options: "i" } },
-        ],
-      };
-      req.collection.find(query, {}).toArray(function (err, results) {
-        if (err) {
-          return next(err);
-        }
-        res.send(results);
-      });
-    }
-  );
-  app.get("/:collectionName/search", function (req, res, next) {
-    req.collection.find({}).toArray(function (err, results) {
+app.post("/:collectionName", function (req, res, next) {
+  try {
+    abc = req.body;
+    req.collection.insertOne(abc, function (err, results) {
       if (err) {
         return next(err);
       }
       res.send(results);
     });
-  });
-  
+  } catch (e) {
+    next(e);
+  }
+});
 
+/// A PUT route that updates the number of available spaces in the
+/// 'lesson' collection after an order is submitted
+app.put("/:collectionName/:id", function (req, res, next) {
+  var id = req.params.id;
+  var spaces = req.body.spaces;
+  req.collection.updateOne(
+    { _id: new ObjectId(id) },
+    { $inc: { spaces: -spaces } },
+    function (err, results) {
+      if (err) {
+        return next(err);
+      }
+      res.send(results);
+    }
+  );
+});
+
+/// delete endpoint
+app.delete("/:collectionName/:id", function (req, res, next) {
+  req.collection.deleteOne(
+    { _id: new ObjectId(req.params.id) },
+    function (err, result) {
+      if (err) {
+        return next(err);
+      } else {
+        res.send(
+          result.deletedCount === 1 ? { msg: "success" } : { msg: "error" }
+        );
+      }
+    }
+  );
+});
+//searching through the databse
+app.get("/:collectionName/search/:query", function (req, res, next) {
+  //const searchText = req.query.search;
+  let searchPrompt = req.params.query;
+
+  let query = {};
+  query = {
+    $or: [
+      { subject: { $regex: searchPrompt, $options: "i" } },
+      { location: { $regex: searchPrompt, $options: "i" } },
+    ],
+  };
+  req.collection.find(query, {}).toArray(function (err, results) {
+    if (err) {
+      return next(err);
+    }
+    res.send(results);
+  });
+});
+app.get("/:collectionName/search", function (req, res, next) {
+  req.collection.find({}).toArray(function (err, results) {
+    if (err) {
+      return next(err);
+    }
+    res.send(results);
+  });
+});
 
 app.get("/", function (req, res) {
-    res.send("Running");
+  res.send("Running");
 });
 
 /// handles invalid request
 app.use(function (req, res) {
-    res.status(404).send("Resource not found...");
+  res.status(404).send("Resource not found...");
 });
 
 /// middlware allows to intercept a param and intialize related collection
-app.param('collectionName'
-    , function (req, res, next, collectionName) {
+app.param("collectionName", function (req, res, next, collectionName) {
+  req.collection = db.collection(collectionName);
+  return next();
+});
 
-        req.collection = db.collection(collectionName);
-        return next();
-    });
-
-//search query 
-
-  
-  
-  
-  
-  
+//search query
 
 /// listening on port 4500
 const port = process.env.PORT || 4500;
