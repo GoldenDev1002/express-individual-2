@@ -49,9 +49,8 @@ app.use(function (req, res, next) {
 /// serving static files
 /// static file middleware that returns lesson images, or an error
 /// message if the image file does not exist
-var publicImagePath = path.resolve(__dirname, "subjectPic");
-app.use(
-  "/image",
+var publicImagePath = path.resolve(__dirname, "image");
+app.use("/image",
   express.static(publicImagePath, {
     fallthrough: false,
   })
